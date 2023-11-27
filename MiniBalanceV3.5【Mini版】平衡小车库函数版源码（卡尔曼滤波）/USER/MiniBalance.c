@@ -1,9 +1,5 @@
 #include "stm32f10x.h"
 #include "sys.h"
-  /**************************************************************************
-×÷Õß£ºÆ½ºâÐ¡³µÖ®¼Ò
-ÎÒµÄÌÔ±¦Ð¡µê£ºhttp://shop114407458.taobao.com/
-**************************************************************************/
 
 u8 Way_Angle=2;                             //»ñÈ¡½Ç¶ÈµÄËã·¨£¬1£ºËÄÔªÊý  2£º¿¨¶ûÂü  3£º»¥²¹ÂË²¨ 
 u8 Flag_Qian,Flag_Hou,Flag_Left,Flag_Right; //À¶ÑÀÒ£¿ØÏà¹ØµÄ±äÁ¿
@@ -19,38 +15,42 @@ u8 delay_50,delay_flag,Bi_zhang=0;         //Ä¬ÈÏÇé¿öÏÂ£¬²»¿ªÆô±ÜÕÏ¹¦ÄÜ£¬³¤°´ÓÃ»
 float Acceleration_Z;                      //ZÖá¼ÓËÙ¶È¼Æ  
 
 int main(void)
-  { 
-		delay_init();	    	            //=====ÑÓÊ±º¯Êý³õÊ¼»¯	
-		uart_init(128000);	            //=====´®¿Ú³õÊ¼»¯Îª
-		JTAG_Set(JTAG_SWD_DISABLE);     //=====¹Ø±ÕJTAG½Ó¿Ú
-		JTAG_Set(SWD_ENABLE);           //=====´ò¿ªSWD½Ó¿Ú ¿ÉÒÔÀûÓÃÖ÷°åµÄSWD½Ó¿Úµ÷ÊÔ
-		LED_Init();                     //=====³õÊ¼»¯Óë LED Á¬½ÓµÄÓ²¼þ½Ó¿Ú
-	  KEY_Init();                     //=====°´¼ü³õÊ¼»¯
+{ 
+	delay_init();	    	        //=====ÑÓÊ±º¯Êý³õÊ¼»¯	
+	uart_init(128000);	            //=====´®¿Ú³õÊ¼»¯Îª
+
+	JTAG_Set(JTAG_SWD_DISABLE);     //=====¹Ø±ÕJTAG½Ó¿Ú
+	JTAG_Set(SWD_ENABLE);           //=====´ò¿ªSWD½Ó¿Ú ¿ÉÒÔÀûÓÃÖ÷°åµÄSWD½Ó¿Úµ÷ÊÔ
+
+	LED_Init();                     //=====³õÊ¼»¯Óë LED Á¬½ÓµÄÓ²¼þ½Ó¿Ú
+	KEY_Init();                     //=====°´¼ü³õÊ¼»¯
     MiniBalance_PWM_Init(7199,0);   //=====³õÊ¼»¯PWM 10KHZ£¬ÓÃÓÚÇý¶¯µç»ú ÈçÐè³õÊ¼»¯µçµ÷½Ó¿Ú 
-		uart3_init(9600);               //=====´®¿Ú3³õÊ¼»¯
+	uart3_init(9600);               //=====´®¿Ú3³õÊ¼»¯
     Encoder_Init_TIM2();            //=====±àÂëÆ÷½Ó¿Ú
     Encoder_Init_TIM4();            //=====³õÊ¼»¯±àÂëÆ÷2
-		Adc_Init();                     //=====adc³õÊ¼»¯
+	Adc_Init();                     //=====adc³õÊ¼»¯
     IIC_Init();                     //=====IIC³õÊ¼»¯
     MPU6050_initialize();           //=====MPU6050³õÊ¼»¯	
     DMP_Init();                     //=====³õÊ¼»¯DMP 
     OLED_Init();                    //=====OLED³õÊ¼»¯	    
-		TIM3_Cap_Init(0XFFFF,72-1);	    //=====³¬Éù²¨³õÊ¼»¯
-	  MiniBalance_EXTI_Init();        //=====MPU6050 5ms¶¨Ê±ÖÐ¶Ï³õÊ¼»¯
+	TIM3_Cap_Init(0XFFFF,72-1);	    //=====³¬Éù²¨³õÊ¼»¯
+	MiniBalance_EXTI_Init();        //=====MPU6050 5ms¶¨Ê±ÖÐ¶Ï³õÊ¼»¯
+
     while(1)
-	   {
-		    if(Flag_Show==0)          //Ê¹ÓÃMiniBalanceV3.5 APPºÍOLEDÏÔÊ¾ÆÁ
-					{
-							APP_Show();	
-							oled_show();          //===ÏÔÊ¾ÆÁ´ò¿ª
-					}
-					else                      //Ê¹ÓÃMiniBalanceV3.5ÉÏÎ»»ú ÉÏÎ»»úÊ¹ÓÃµÄÊ±ºòÐèÒªÑÏ¸ñµÄÊ±Ðò£¬¹Ê´ËÊ±¹Ø±Õapp¼à¿Ø²¿·ÖºÍOLEDÏÔÊ¾ÆÁ
-					{
-				      DataScope();          //¿ªÆôMiniBalanceV3.5ÉÏÎ»»ú
-					}	
-				  delay_flag=1;	
-					delay_50=0;
-					while(delay_flag);	     //Í¨¹ýMPU6050µÄINTÖÐ¶ÏÊµÏÖµÄ50ms¾«×¼ÑÓÊ±	
-	   } 
+	{
+		if(Flag_Show==0)          //Ê¹ÓÃMiniBalanceV3.5 APPºÍOLEDÏÔÊ¾ÆÁ
+		{
+			APP_Show();	
+			oled_show();          //===ÏÔÊ¾ÆÁ´ò¿ª
+		}
+		else                      //Ê¹ÓÃMiniBalanceV3.5ÉÏÎ»»ú ÉÏÎ»»úÊ¹ÓÃµÄÊ±ºòÐèÒªÑÏ¸ñµÄÊ±Ðò£¬¹Ê´ËÊ±¹Ø±Õapp¼à¿Ø²¿·ÖºÍOLEDÏÔÊ¾ÆÁ
+		{
+			DataScope();          //¿ªÆôMiniBalanceV3.5ÉÏÎ»»ú
+		}	
+
+		delay_flag=1;	
+		delay_50=0;
+		while(delay_flag);	     //Í¨¹ýMPU6050µÄINTÖÐ¶ÏÊµÏÖµÄ50ms¾«×¼ÑÓÊ±	
+	} 
 }
 

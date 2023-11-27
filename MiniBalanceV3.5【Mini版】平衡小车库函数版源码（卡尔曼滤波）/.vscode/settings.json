@@ -1,0 +1,21 @@
+{
+    "files.encoding": "gb2312",
+    "files.associations": {
+        "LED.C": "cpp",
+        "delay.h": "c",
+        "sys.h": "c",
+        "usart.h": "c",
+        "key.h": "c",
+        "motor.h": "c",
+        "usart3.h": "c",
+        "stm32f10x_gpio.h": "c",
+        "encoder.h": "c",
+        "ioi2c.h": "c",
+        "stm32f10x.h": "c",
+        "oled.h": "c",
+        "oledfont.h": "c",
+        "timer.h": "c",
+        "exti.h": "c",
+        "DataScope_DP.C": "cpp"
+    }
+}
