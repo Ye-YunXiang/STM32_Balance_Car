@@ -34,11 +34,11 @@ void TIM3_Cap_Init(u16 arr,u16 psc)
   
 	//初始化TIM3输入捕获参数
 	TIM3_ICInitStructure.TIM_Channel = TIM_Channel_3; //CC1S=03 	选择输入端 IC3映射到TI1上
-  TIM3_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;	//上升沿捕获
-  TIM3_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
-  TIM3_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;	 //配置输入分频,不分频 
-  TIM3_ICInitStructure.TIM_ICFilter = 0x00;//配置输入滤波器 不滤波
-  TIM_ICInit(TIM3, &TIM3_ICInitStructure);
+	TIM3_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;	//上升沿捕获
+	TIM3_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;
+	TIM3_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;	 //配置输入分频,不分频 
+	TIM3_ICInitStructure.TIM_ICFilter = 0x00;//配置输入滤波器 不滤波
+	TIM_ICInit(TIM3, &TIM3_ICInitStructure);
 	
 	//中断分组初始化
 	NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;  //TIM3中断

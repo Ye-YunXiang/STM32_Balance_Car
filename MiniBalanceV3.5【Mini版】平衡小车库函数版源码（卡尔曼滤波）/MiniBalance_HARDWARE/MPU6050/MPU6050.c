@@ -164,7 +164,6 @@ MPU6050_FIFO[5][10]=sum/10;
 *******************************************************************************/
 void MPU6050_setClockSource(uint8_t source){
     IICwriteBits(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CLKSEL_BIT, MPU6050_PWR1_CLKSEL_LENGTH, source);
-
 }
 
 /** Set full-scale gyroscope range.
@@ -257,12 +256,13 @@ void MPU6050_initialize(void) {
 **************************************************************************/
 void DMP_Init(void)
 { 
-   u8 temp[1]={0};
-   i2cRead(0x68,0x75,1,temp);
-	 printf("mpu_set_sensor complete ......\r\n");
-	if(temp[0]!=0x68)NVIC_SystemReset();
+    u8 temp[1]={0};
+    i2cRead(0x68,0x75,1,temp);
+	printf("mpu_set_sensor complete ......\r\n");
+	if(temp[0]!=0x68)
+        NVIC_SystemReset();
 	if(!mpu_init())
-  {
+    {
 	  if(!mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL))
 	  	 printf("mpu_set_sensor complete ......\r\n");
 	  if(!mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL))

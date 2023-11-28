@@ -16,6 +16,7 @@
         "oledfont.h": "c",
         "timer.h": "c",
         "exti.h": "c",
-        "DataScope_DP.C": "cpp"
+        "DataScope_DP.C": "cpp",
+        "mpu6050.h": "c"
     }
 }

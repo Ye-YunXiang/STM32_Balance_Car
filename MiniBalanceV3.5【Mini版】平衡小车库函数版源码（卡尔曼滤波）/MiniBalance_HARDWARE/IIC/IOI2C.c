@@ -330,7 +330,6 @@ unsigned char IICwriteByte(unsigned char dev, unsigned char reg, unsigned char d
 *******************************************************************************/ 
 u8 IICwriteBits(u8 dev,u8 reg,u8 bitStart,u8 length,u8 data)
 {
-
     u8 b;
     if (IICreadByte(dev, reg, &b) != 0) {
         u8 mask = (0xFF << (bitStart + 1)) | 0xFF >> ((8 - bitStart) + length - 1);
