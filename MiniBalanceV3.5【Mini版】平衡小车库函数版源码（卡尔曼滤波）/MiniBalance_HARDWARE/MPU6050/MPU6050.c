@@ -236,13 +236,14 @@ void MPU6050_setI2CBypassEnabled(uint8_t enabled) {
 *函数原型:		void MPU6050_initialize(void)
 *功　　能:	    初始化 	MPU6050 以进入可用状态。
 *******************************************************************************/
-void MPU6050_initialize(void) {
+void MPU6050_initialize(void) 
+{
     MPU6050_setClockSource(MPU6050_CLOCK_PLL_YGYRO); //设置时钟
     MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_2000);//陀螺仪最大量程 +-1000度每秒
     MPU6050_setFullScaleAccelRange(MPU6050_ACCEL_FS_2);	//加速度度最大量程 +-2G
     MPU6050_setSleepEnabled(0); //进入工作状态
-	 MPU6050_setI2CMasterModeEnabled(0);	 //不让MPU6050 控制AUXI2C
-	 MPU6050_setI2CBypassEnabled(0);	 //主控制器的I2C与	MPU6050的AUXI2C	直通。控制器可以直接访问HMC5883L
+	MPU6050_setI2CMasterModeEnabled(0);	 //不让MPU6050 控制AUXI2C
+	MPU6050_setI2CBypassEnabled(0);	 //主控制器的I2C与	MPU6050的AUXI2C	直通。控制器可以直接访问HMC5883L
 }
 
 

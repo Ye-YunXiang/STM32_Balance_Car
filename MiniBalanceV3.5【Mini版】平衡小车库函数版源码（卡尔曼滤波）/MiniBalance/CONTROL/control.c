@@ -1,8 +1,10 @@
 #include "control.h"	
 #include "filter.h"	
 
-int Balance_Pwm,Velocity_Pwm,Turn_Pwm;
-u8 Flag_Target;
+int Balance_Pwm;		// 平衡PWM
+int Velocity_Pwm;		// 速度PWM
+int Turn_Pwm;			// 拐弯PWM
+u8 Flag_Target;			// 目标标志
 /**************************************************************************
 函数功能：所有的控制代码都在这里面
          5ms定时中断由MPU6050的INT引脚触发
@@ -10,41 +12,69 @@ u8 Flag_Target;
 **************************************************************************/
 int EXTI9_5_IRQHandler(void) 
 {    
-	 if(PBin(5)==0)		
+	if(PBin(5)==0)		
 	{   
-		  EXTI->PR=1<<5;                                                      //清除LINE5上的中断标志位   
-		   Flag_Target=!Flag_Target;
-		   if(delay_flag==1)
-			 {
-				 if(++delay_50==10)	 delay_50=0,delay_flag=0;                     //给主函数提供精准延时
-			 }
-		  if(Flag_Target==1)                                                  //5ms读取一次陀螺仪和加速度计的值，更高的采样频率可以改善卡尔曼滤波和互补滤波的效果
+		EXTI->PR=1<<5;                                                      //清除LINE5上的中断标志位   
+		Flag_Target = !Flag_Target;
+
+		if(delay_flag==1)
+		{
+			if(++delay_50 == 10)
 			{
+				delay_50 = 0;
+				delay_flag = 0;                     //给主函数提供精准延时
+			}
+		}
+
+		if(Flag_Target == 1)                                                  //5ms读取一次陀螺仪和加速度计的值，更高的采样频率可以改善卡尔曼滤波和互补滤波的效果
+		{
 			Get_Angle(Way_Angle);                                               //===更新姿态	
 			return 0;	                                               
-			}                                                                   //10ms控制一次，为了保证M法测速的时间基准，首先读取编码器数据
-			Encoder_Left=-Read_Encoder(2);                                      //===读取编码器的值，因为两个电机的旋转了180度的，所以对其中一个取反，保证输出极性一致
-			Encoder_Right=Read_Encoder(4);                                      //===读取编码器的值
-	  	Get_Angle(Way_Angle);                                               //===更新姿态	
-			Read_Distane();                                                     //===读取超声波测量得到的距离
-  		if(Bi_zhang==0)Led_Flash(100);                                      //===LED闪烁;常规模式 1s改变一次指示灯的状态	
-			if(Bi_zhang==1)Led_Flash(0);                                        //===LED闪烁;避障模式 指示灯常亮	
-  		Voltage=Get_battery_volt();                                         //===获取电池电压	          
-			Key();                                                              //===扫描按键状态 单击双击可以改变小车运行状态
- 			Balance_Pwm =balance(Angle_Balance,Gyro_Balance);                   //===平衡PID控制	
-		  Velocity_Pwm=velocity(Encoder_Left,Encoder_Right);                  //===速度环PID控制	 记住，速度反馈是正反馈，就是小车快的时候要慢下来就需要再跑快一点
-  	  Turn_Pwm    =turn(Encoder_Left,Encoder_Right,Gyro_Turn);            //===转向环PID控制     
- 		  Moto1=Balance_Pwm+Velocity_Pwm-Turn_Pwm;                            //===计算左轮电机最终PWM
- 	  	Moto2=Balance_Pwm+Velocity_Pwm+Turn_Pwm;                            //===计算右轮电机最终PWM
+		}                                                                   //10ms控制一次，为了保证M法测速的时间基准，首先读取编码器数据
+
+		Encoder_Left = -Read_Encoder(2);                                      //===读取编码器的值，因为两个电机的旋转了180度的，所以对其中一个取反，保证输出极性一致
+		Encoder_Right = Read_Encoder(4);                                      //===读取编码器的值
+
+		Get_Angle(Way_Angle);                                               //===更新姿态	
+
+		Read_Distane();                                                     //===读取超声波测量得到的距离
+
+  		if(Bi_zhang==0)
+		{
+			Led_Flash(100);                                      //===LED闪烁;常规模式 1s改变一次指示灯的状态	
+		}
+		if(Bi_zhang==1)
+		{
+			Led_Flash(0);                                        //===LED闪烁;避障模式 指示灯常亮
+		}
+
+  		Voltage = Get_battery_volt();                                         //===获取电池电压	        
+		Key();                                                              //===扫描按键状态 单击双击可以改变小车运行状态
+
+ 		Balance_Pwm = balance(Angle_Balance, Gyro_Balance);                   //===平衡PID控制	
+		Velocity_Pwm = velocity(Encoder_Left, Encoder_Right);                 //===速度环PID控制	 记住，速度反馈是正反馈，就是小车快的时候要慢下来就需要再跑快一点
+  	  	Turn_Pwm = turn(Encoder_Left, Encoder_Right, Gyro_Turn);            //===转向环PID控制     
+ 		Moto1 = Balance_Pwm + Velocity_Pwm-Turn_Pwm;                            //===计算左轮电机最终PWM
+ 	  	Moto2 = Balance_Pwm + Velocity_Pwm+Turn_Pwm;                            //===计算右轮电机最终PWM
+
    		Xianfu_Pwm();                                                       //===PWM限幅
-			if(Pick_Up(Acceleration_Z,Angle_Balance,Encoder_Left,Encoder_Right))//===检查是否小车被那起
-			Flag_Stop=1;	                                                      //===如果被拿起就关闭电机
-			if(Put_Down(Angle_Balance,Encoder_Left,Encoder_Right))              //===检查是否小车被放下
-			Flag_Stop=0;	                                                      //===如果被放下就启动电机
-      if(Turn_Off(Angle_Balance,Voltage)==0)                              //===如果不存在异常
- 			Set_Pwm(Moto1,Moto2);                                               //===赋值给PWM寄存器  
+
+		if(Pick_Up(Acceleration_Z, Angle_Balance, Encoder_Left, Encoder_Right)) //===检查是否小车被那起
+		{
+			Flag_Stop = 1;	                                                      //===如果被拿起就关闭电机
+		}
+		if(Put_Down(Angle_Balance, Encoder_Left, Encoder_Right))              //===检查是否小车被放下
+		{
+			Flag_Stop = 0;	                                                      //===如果被放下就启动电机
+		}
+
+      	if(Turn_Off(Angle_Balance, Voltage)==0)                              //===如果不存在异常
+		{
+ 			Set_Pwm(Moto1, Moto2);                                               //===赋值给PWM寄存器  
+		}
 	}       	
-	 return 0;	  
+	
+	return 0;	  
 } 
 
 /**************************************************************************
@@ -55,11 +85,11 @@ int EXTI9_5_IRQHandler(void)
 **************************************************************************/
 int balance(float Angle,float Gyro)
 {  
-   float Bias,kp=100,kd=0.40;
-	 int balance;
-	 Bias=Angle-ZHONGZHI;       //===求出平衡的角度中值 和机械相关
-	 balance=kp*Bias+Gyro*kd;   //===计算平衡控制的电机PWM  PD控制   kp是P系数 kd是D系数 
-	 return balance;
+    float Bias,kp=100,kd=0.40;
+	int balance;
+	Bias=Angle-ZHONGZHI;       //===求出平衡的角度中值 和机械相关
+	balance=kp*Bias+Gyro*kd;   //===计算平衡控制的电机PWM  PD控制   kp是P系数 kd是D系数 
+	return balance;
 }
 
 /**************************************************************************
@@ -167,11 +197,21 @@ void Xianfu_Pwm(void)
 void Key(void)
 {	
 	u8 tmp,tmp2;
-	tmp=click_N_Double(50); 
-	if(tmp==1)Flag_Stop=!Flag_Stop;//单击控制小车的启停
-	if(tmp==2)Flag_Show=!Flag_Show;//双击控制小车的显示状态
-	tmp2=Long_Press();                   
-  if(tmp2==1) Bi_zhang=!Bi_zhang;		//长按控制小车是否进入超声波避障模式 
+	tmp = click_N_Double(50); 
+	
+	if(tmp == 1)
+	{
+		Flag_Stop = !Flag_Stop;//单击控制小车的启停
+	}
+	if(tmp == 2)
+	{
+		Flag_Show = !Flag_Show;//双击控制小车的显示状态
+	}
+	tmp2 = Long_Press();                   
+  	if(tmp2 == 1)
+	{
+		Bi_zhang = !Bi_zhang;		//长按控制小车是否进入超声波避障模式 
+	}
 }
 
 /**************************************************************************
@@ -202,35 +242,57 @@ u8 Turn_Off(float angle, int voltage)
 **************************************************************************/
 void Get_Angle(u8 way)
 { 
-	    float Accel_Y,Accel_X,Accel_Z,Gyro_Y,Gyro_Z;
-	    Temperature=Read_Temperature();      //===读取MPU6050内置温度传感器数据，近似表示主板温度。	
-	    if(way==1)                           //===DMP的读取在数据采集中断提醒的时候，严格遵循时序要求
-			{	
-					Read_DMP();                      //===读取加速度、角速度、倾角
-					Angle_Balance=Pitch;             //===更新平衡倾角
-					Gyro_Balance=gyro[1];            //===更新平衡角速度
-					Gyro_Turn=gyro[2];               //===更新转向角速度
-				  Acceleration_Z=accel[2];         //===更新Z轴加速度计
-			}			
-      else
-      {
-			Gyro_Y=(I2C_ReadOneByte(devAddr,MPU6050_RA_GYRO_YOUT_H)<<8)+I2C_ReadOneByte(devAddr,MPU6050_RA_GYRO_YOUT_L);    //读取Y轴陀螺仪
-			Gyro_Z=(I2C_ReadOneByte(devAddr,MPU6050_RA_GYRO_ZOUT_H)<<8)+I2C_ReadOneByte(devAddr,MPU6050_RA_GYRO_ZOUT_L);    //读取Z轴陀螺仪
-		  Accel_X=(I2C_ReadOneByte(devAddr,MPU6050_RA_ACCEL_XOUT_H)<<8)+I2C_ReadOneByte(devAddr,MPU6050_RA_ACCEL_XOUT_L); //读取X轴加速度计
-	  	Accel_Z=(I2C_ReadOneByte(devAddr,MPU6050_RA_ACCEL_ZOUT_H)<<8)+I2C_ReadOneByte(devAddr,MPU6050_RA_ACCEL_ZOUT_L); //读取Z轴加速度计
-		  if(Gyro_Y>32768)  Gyro_Y-=65536;                       //数据类型转换  也可通过short强制类型转换
-			if(Gyro_Z>32768)  Gyro_Z-=65536;                       //数据类型转换
-	  	if(Accel_X>32768) Accel_X-=65536;                      //数据类型转换
-		  if(Accel_Z>32768) Accel_Z-=65536;                      //数据类型转换
-			Gyro_Balance=-Gyro_Y;                                  //更新平衡角速度
-	   	Accel_Y=atan2(Accel_X,Accel_Z)*180/PI;                 //计算倾角	
-		  Gyro_Y=Gyro_Y/16.4;                                    //陀螺仪量程转换	
-      if(Way_Angle==2)		  	Kalman_Filter(Accel_Y,-Gyro_Y);//卡尔曼滤波	
-			else if(Way_Angle==3)   Yijielvbo(Accel_Y,-Gyro_Y);    //互补滤波
-	    Angle_Balance=angle;                                   //更新平衡倾角
-			Gyro_Turn=Gyro_Z;                                      //更新转向角速度
-			Acceleration_Z=Accel_Z;                                //===更新Z轴加速度计	
+	float Accel_Y,Accel_X,Accel_Z,Gyro_Y,Gyro_Z;
+	Temperature=Read_Temperature();      //===读取MPU6050内置温度传感器数据，近似表示主板温度。	
+	
+	if(way==1)                           //===DMP的读取在数据采集中断提醒的时候，严格遵循时序要求
+	{	
+		Read_DMP();                      //===读取加速度、角速度、倾角
+		Angle_Balance=Pitch;             //===更新平衡倾角
+		Gyro_Balance=gyro[1];            //===更新平衡角速度
+		Gyro_Turn=gyro[2];               //===更新转向角速度
+		Acceleration_Z=accel[2];         //===更新Z轴加速度计
+	}			
+	else
+	{
+		Gyro_Y = (I2C_ReadOneByte(devAddr, MPU6050_RA_GYRO_YOUT_H)<<8) + I2C_ReadOneByte(devAddr, MPU6050_RA_GYRO_YOUT_L);    //读取Y轴陀螺仪
+		Gyro_Z = (I2C_ReadOneByte(devAddr, MPU6050_RA_GYRO_ZOUT_H)<<8) + I2C_ReadOneByte(devAddr, MPU6050_RA_GYRO_ZOUT_L);    //读取Z轴陀螺仪
+		Accel_X = (I2C_ReadOneByte(devAddr, MPU6050_RA_ACCEL_XOUT_H)<<8) + I2C_ReadOneByte(devAddr, MPU6050_RA_ACCEL_XOUT_L); //读取X轴加速度计
+		Accel_Z = (I2C_ReadOneByte(devAddr, MPU6050_RA_ACCEL_ZOUT_H)<<8) + I2C_ReadOneByte(devAddr, MPU6050_RA_ACCEL_ZOUT_L); //读取Z轴加速度计
+
+		if(Gyro_Y > 32768)
+		{
+			Gyro_Y -= 65536;                       //数据类型转换  也可通过short强制类型转换
 		}
+		if(Gyro_Z > 32768)
+		{
+			Gyro_Z -= 65536;                       //数据类型转换
+		}
+		if(Accel_X > 32768)
+		{
+			Accel_X -= 65536;                      //数据类型转换
+		}
+		if(Accel_Z > 32768)
+		{ 
+			Accel_Z-=65536;                      //数据类型转换
+		}
+		Gyro_Balance =- Gyro_Y;                                  //更新平衡角速度
+		Accel_Y = atan2(Accel_X, Accel_Z) * 180 / PI;                 //计算倾角	
+		Gyro_Y = Gyro_Y / 16.4;   
+		                                 //陀螺仪量程转换	
+		if(Way_Angle == 2)	
+		{
+			Kalman_Filter(Accel_Y,-Gyro_Y);//卡尔曼滤波	
+		}
+		else if(Way_Angle == 3)   
+		{
+			Yijielvbo(Accel_Y,-Gyro_Y);    //互补滤波
+		}
+
+		Angle_Balance = angle;                                   //更新平衡倾角
+		Gyro_Turn = Gyro_Z;                                      //更新转向角速度
+		Acceleration_Z = Accel_Z;                                //===更新Z轴加速度计	
+	}
 }
 /**************************************************************************
 函数功能：绝对值函数

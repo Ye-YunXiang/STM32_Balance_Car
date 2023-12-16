@@ -17,6 +17,8 @@
         "timer.h": "c",
         "exti.h": "c",
         "DataScope_DP.C": "cpp",
-        "mpu6050.h": "c"
+        "mpu6050.h": "c",
+        "control.h": "c",
+        "filter.h": "c"
     }
 }

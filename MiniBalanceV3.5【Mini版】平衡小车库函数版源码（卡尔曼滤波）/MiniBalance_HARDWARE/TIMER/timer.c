@@ -57,15 +57,15 @@ void TIM3_Cap_Init(u16 arr,u16 psc)
 u16 TIM3CH3_CAPTURE_STA,TIM3CH3_CAPTURE_VAL;
 void Read_Distane(void)
 {   
-	 PBout(1)=1;
+	 PBout(1) = 1;
 	 delay_us(15);  
-	 PBout(1)=0;	
-			if(TIM3CH3_CAPTURE_STA&0X80)//成功捕获到了一次高电平
+	 PBout(1) = 0;	
+		if(TIM3CH3_CAPTURE_STA & 0X80)//成功捕获到了一次高电平
 		{
-			Distance=TIM3CH3_CAPTURE_STA&0X3F;
-			Distance*=65536;					        //溢出时间总和
-			Distance+=TIM3CH3_CAPTURE_VAL;		//得到总的高电平时间
-			Distance=Distance*170/1000;
+			Distance = TIM3CH3_CAPTURE_STA & 0X3F;
+			Distance *= 65536;					        //溢出时间总和
+			Distance += TIM3CH3_CAPTURE_VAL;		//得到总的高电平时间
+			Distance = Distance * 170 / 1000;
 		//	printf("%d \r\n",Distance);
 			TIM3CH3_CAPTURE_STA=0;			//开启下一次捕获
 		}				
